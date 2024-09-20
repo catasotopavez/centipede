@@ -66,6 +66,10 @@ def game_loop():
             pygame.quit()
             sys.exit()
 
+        # Verificar colisiones entre balas y segmentos del centipede
+        collisions = pygame.sprite.groupcollide(bullets, centipedes, True, True)
+        # Si ocurre una colisión, ambos sprites (bala y segmento) se eliminan
+
         # Dibujar en pantalla
         screen.fill((0, 0, 0))  # Limpiar la pantalla
         centipedes.draw(screen)
