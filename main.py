@@ -4,22 +4,18 @@ from centipede import Centipede
 from player import Player
 from bullet import Bullet
 
-# Inicializamos Pygame
 pygame.init()
 
-# Configuramos la pantalla
 screen_width = 640
 screen_height = 480
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Centipede")
 
-# Configuramos el reloj para controlar la tasa de frames
 clock = pygame.time.Clock()
 
-# Crear el jugador
 player = Player(screen)
 
-# Crear el grupo de centipedes y añadirlos
+
 centipedes = pygame.sprite.Group()
 for i in range(8):  # Número de segmentos
     centipede_segment = Centipede(screen, i * 24, 7 if i == 0 else i, 1)
@@ -38,7 +34,6 @@ def display_game_over():
 
 def game_loop():
     while True:
-        # Manejo de eventos
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -58,7 +53,7 @@ def game_loop():
         # Actualizar posiciones
         player.update()
         centipedes.update()
-        bullets.update()  # Actualiza las posiciones de los proyectiles
+        bullets.update()  
 
         # Verificar colisión entre el jugador y el centipede
         if pygame.sprite.spritecollideany(player, centipedes):
@@ -68,16 +63,15 @@ def game_loop():
 
         # Verificar colisiones entre balas y segmentos del centipede
         collisions = pygame.sprite.groupcollide(bullets, centipedes, True, True)
-        # Si ocurre una colisión, ambos sprites (bala y segmento) se eliminan
 
-        # Dibujar en pantalla
-        screen.fill((0, 0, 0))  # Limpiar la pantalla
+        # Dibujar 
+        screen.fill((0, 0, 0))  
         centipedes.draw(screen)
-        bullets.draw(screen)  # Dibujar los proyectiles
-        screen.blit(player.image, player.rect)  # Dibujar al jugador
+        bullets.draw(screen)  
+        screen.blit(player.image, player.rect)  
 
         pygame.display.flip()
         clock.tick(60)
 
-# Ejecutamos el loop del juego
+
 game_loop()
