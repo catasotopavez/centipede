@@ -1,4 +1,3 @@
-# centipede.py
 import pygame
 
 class Centipede(pygame.sprite.Sprite):
@@ -10,6 +9,7 @@ class Centipede(pygame.sprite.Sprite):
         self.__right = right
         self.__reached_bottom = False
         self.__level = level
+
 
         if self.__level == 1:
             self.image = pygame.Surface((20, 20))
