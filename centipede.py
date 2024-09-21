@@ -5,10 +5,11 @@ class Centipede(pygame.sprite.Sprite):
         '''Inicializador que toma la pantalla, coordenada right, número, y nivel.'''
         pygame.sprite.Sprite.__init__(self)
         self.__screen = screen
-        self.__num = number
+        self.num = number
         self.__right = right
         self.__reached_bottom = False
         self.__level = level
+        self.speed_increased = False
 
 
         if self.__level == 1:
@@ -32,7 +33,7 @@ class Centipede(pygame.sprite.Sprite):
         # Ver si ha tocado los bordes para cambiar de dirección
         if not self.__reached_bottom:
             if self.rect.left <= 0 or self.rect.right >= self.__screen.get_width():
-                self.rect.top += 16
+                self.rect.top += 20
                 self.__dx = -self.__dx
             if self.rect.bottom == (self.__screen.get_height() + 16):
                 self.__reached_bottom = True
@@ -44,3 +45,18 @@ class Centipede(pygame.sprite.Sprite):
             if self.rect.top == self.__screen.get_height() - 128:
                 self.rect.top += 32
                 self.__reached_bottom = False
+    
+    # Si choca con un hongo, cambia el sentido del movimiento
+    def collide_with_mushroom(self):
+        self.__dx = -self.__dx  # Invierte la dirección horizontal
+        self.rect.top += 20
+    
+    def increase_speed(self):
+        '''Aumenta la velocidad del centipede.'''
+        if not self.speed_increased:
+            if self.__dx < 0:
+                self.__dx -= 1  # Aumentar velocidad negativa (izquierda)
+            else:
+                self.__dx += 1  # Aumentar velocidad positiva (derecha)
+            self.speed_increased = True
+            
