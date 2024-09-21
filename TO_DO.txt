@@ -1,0 +1,26 @@
+Que falta por hacer:
+
+- Paso de nivel 
+(que al destruir un centipede se 
+genere otro mas rapido o con mas segmentos)
+
+- Sistema de puntos 
+Hongos normales y envenenados: 1 punto (toma cuatro disparos destruirlos). 
+Cuando el camino de hongos es restaurado después de que el jugador pierde 
+una vida, cada hongo enveneado o parcialmente destruido que es restaurado 
+le regala al jugador 5 puntos
+Gusano (cuerpo): 10 puntos
+Gusano (cabeza): 100 puntos
+Pulga: 200 puntos (toma 2 disparos destruirla. El primero la hace más rápido y el segundo la destruye)
+Araña (desde lejos): 300 puntos
+Araña (desde cerca): 600 puntos
+Araña (desde muy cerca): 900 puntos
+Escorpión: 1000 puntos
+
+- Enemigos 
+
+- Vidas (el usuario tiene 3)
+
+- Que cuando se gana una vida se vuelvan a restaurar los hongos
+(Se pueden guardar las posiciones de los hongos destruidos 
+para luego restaurar esas instancias)
