@@ -62,6 +62,10 @@ def game_loop():
                     player.move_left()
                 elif event.key == pygame.K_RIGHT:
                     player.move_right()
+                elif event.key == pygame.K_UP:
+                    player.move_up()
+                elif event.key == pygame.K_DOWN:
+                    player.move_down()
                 elif event.key == pygame.K_SPACE:  # Disparar
                     bullet = Bullet(screen, player)
                     bullets.add(bullet)
@@ -73,6 +77,22 @@ def game_loop():
         player.update()
         centipedes.update()
         bullets.update()  
+        
+        collided_mushroom = pygame.sprite.spritecollide(player, mushrooms, False)
+        
+        if collided_mushroom:
+            # Ajustar la posición del jugador para evitar que traspase el hongo
+            for mushroom in collided_mushroom:
+                if player.rect.right > mushroom.rect.left and player.rect.left < mushroom.rect.right:
+                    if player.rect.centery < mushroom.rect.centery:  # Si el jugador está arriba
+                        player.rect.bottom = mushroom.rect.top
+                    elif player.rect.centery > mushroom.rect.centery:  # Si el jugador está abajo
+                        player.rect.top = mushroom.rect.bottom
+                if player.rect.bottom > mushroom.rect.top and player.rect.top < mushroom.rect.bottom:
+                    if player.rect.centerx < mushroom.rect.centerx:  # Si el jugador está a la izquierda
+                        player.rect.right = mushroom.rect.left
+                    elif player.rect.centerx > mushroom.rect.centerx:  # Si el jugador está a la derecha
+                        player.rect.left = mushroom.rect.right
 
         # Verificar colisión entre el jugador y el centipede
         if pygame.sprite.spritecollideany(player, centipedes):
