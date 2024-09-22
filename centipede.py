@@ -1,8 +1,10 @@
 import pygame
 
+
 class Centipede(pygame.sprite.Sprite):
     def __init__(self, screen, right, number, level):
-        '''Inicializador que toma la pantalla, coordenada right, número, y nivel.'''
+        """Inicializador que toma la pantalla,
+        coordenada right, número, y nivel."""
         pygame.sprite.Sprite.__init__(self)
         self.__screen = screen
         self.num = number
@@ -11,52 +13,56 @@ class Centipede(pygame.sprite.Sprite):
         self.__level = level
         self.speed_increased = False
 
-
         if self.__level == 1:
             self.image = pygame.Surface((20, 20))
-            self.image.fill((0, 255, 0)) 
+            self.image.fill((0, 255, 0))
             self.__dx = -2
         elif self.__level == 2:
             self.image = pygame.Surface((20, 20))
-            self.image.fill((0, 0, 255))  
+            self.image.fill((0, 0, 255))
             self.__dx = -4
 
         self.rect = self.image.get_rect()
-        self.rect.right = self.__screen.get_width() - self.__right
+        self.rect.right = self.__screen.screen_width - self.__right
         self.rect.top = 64
 
     def update(self):
-        '''Actualiza la posición del centipede en la pantalla.'''
+        """Actualiza la posición del centipede en la pantalla."""
         # Movimiento horizontal
         self.rect.right += self.__dx
 
         # Ver si ha tocado los bordes para cambiar de dirección
         if not self.__reached_bottom:
-            if self.rect.left <= 0 or self.rect.right >= self.__screen.get_width():
+            if (
+                self.rect.left <= 0
+                or self.rect.right >= self.__screen.screen_width
+            ):
                 self.rect.top += 20
                 self.__dx = -self.__dx
-            if self.rect.bottom == (self.__screen.get_height() + 16):
+            if self.rect.bottom == (self.__screen.screen_height + 16):
                 self.__reached_bottom = True
                 self.rect.top -= 32
         else:
-            if self.rect.left <= 0 or self.rect.right >= self.__screen.get_width():
+            if (
+                self.rect.left <= 0
+                or self.rect.right >= self.__screen.screen_width
+            ):
                 self.rect.top -= 16
                 self.__dx = -self.__dx
-            if self.rect.top == self.__screen.get_height() - 128:
+            if self.rect.top == self.__screen.screen_height - 128:
                 self.rect.top += 32
                 self.__reached_bottom = False
-    
+
     # Si choca con un hongo, cambia el sentido del movimiento
     def collide_with_mushroom(self):
         self.__dx = -self.__dx  # Invierte la dirección horizontal
         self.rect.top += 20
-    
+
     def increase_speed(self):
-        '''Aumenta la velocidad del centipede.'''
+        """Aumenta la velocidad del centipede."""
         if not self.speed_increased:
             if self.__dx < 0:
                 self.__dx -= 1  # Aumentar velocidad negativa (izquierda)
             else:
                 self.__dx += 1  # Aumentar velocidad positiva (derecha)
             self.speed_increased = True
-            

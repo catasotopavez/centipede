@@ -1,8 +1,9 @@
 import pygame
 
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, screen, player):
-        '''Inicializa el proyectil desde la posición del jugador.'''
+        """Inicializa el proyectil desde la posición del jugador."""
         super().__init__()
         self.screen = screen
 
@@ -19,7 +20,7 @@ class Bullet(pygame.sprite.Sprite):
         self.speed_y = -10
 
     def update(self):
-        '''Actualiza la posición del proyectil en la pantalla.'''
+        """Actualiza la posición del proyectil en la pantalla."""
         # Mover el proyectil hacia arriba
         self.rect.y += self.speed_y
 
