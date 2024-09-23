@@ -8,6 +8,7 @@ from ui import UI
 import random
 
 pygame.init()
+pygame.mixer.init() 
 
 screen = UI()
 pygame.display.set_caption("Centipede")
@@ -15,6 +16,7 @@ pygame.display.set_caption("Centipede")
 clock = pygame.time.Clock()
 
 player = Player(screen)
+shoot_sound = pygame.mixer.Sound('sounds/shoot.mp3')
 
 
 def create_centipedes(level=1):
@@ -85,6 +87,7 @@ def event_handler(event: pygame.event.Event):
         elif event.key == pygame.K_SPACE:  # Disparar
             bullet = Bullet(screen, player)
             bullets.add(bullet)
+            shoot_sound.play() 
     elif event.type == pygame.KEYUP:
         if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
             player.stop()
@@ -208,8 +211,13 @@ def game_loop():
             )
 
             if collided_bullets:
-                mushroom.bullet_collision()
+                if mushroom.bullet_collision():
+                    score += 1 
+                    print("Elimino un hongo")
                 collided_bullets[0].kill()
+                
+                
+                
 
         # Dibujar
         screen.screen.fill((0, 0, 0))

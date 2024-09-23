@@ -36,3 +36,5 @@ class Mushroom(pygame.sprite.Sprite):
         else:
             # Si la altura es 0 o menor, eliminar el hongo
             self.kill()
+            return True
+        return False
