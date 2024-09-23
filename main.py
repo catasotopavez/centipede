@@ -6,6 +6,7 @@ from bullet import Bullet
 from mushroom import Mushroom
 from ui import UI
 import random
+from settings import *
 
 pygame.init()
 
@@ -66,39 +67,48 @@ for j in range(20):  # Número de hongos
     mushrooms.add(mushroom)
 
 
-def check_win(level):
+def check_win(level, bg):
     """Verifica si el jugador ha ganado el juego."""
     if level == 3:
-        screen.display_win()
+        screen.you_win_menu(bg)
         pygame.quit()
         sys.exit()
     return False
 
 
-def check_loss(player):
+def check_loss(player, bg):
     """Verifica si el jugador ha perdido el juego."""
     if player.lives == 0:
-        screen.display_game_over()
+        screen.game_over_menu(bg)
         pygame.quit()
         sys.exit()
     return False
 
 
-def event_handler(event: pygame.event.Event):
+def event_handler(event: pygame.event.Event, bg):
     if event.type == pygame.QUIT:
         pygame.quit()
         sys.exit()
+
+    # Combine KEYDOWN checks into a single block
     elif event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_LEFT:
+        if event.key == pygame.K_p:  # Pause the game
+            if not screen.pause_menu(bg):
+                running = False
+                return
+        elif event.key == pygame.K_LEFT:
             player.move_left()
         elif event.key == pygame.K_RIGHT:
             player.move_right()
-        elif event.key == pygame.K_SPACE:  # Disparar
+        elif event.key == pygame.K_SPACE:  # Shoot bullet
             bullet = Bullet(screen, player)
             bullets.add(bullet)
+
+    # Handle stopping movement when keys are released
     elif event.type == pygame.KEYUP:
         if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
             player.stop()
+
 
 
 def mushroom_collision_handler(mushroom, player):
@@ -127,16 +137,146 @@ def mushroom_collision_handler(mushroom, player):
         ):  # Si el jugador está a la derecha
             player.rect.left = mushroom.rect.right
 
+def load_and_scale_background(image_path, window_width, window_height):
+    bg = pygame.image.load(image_path)
+    return pygame.transform.scale(bg, (window_width, window_height))
+
+
+def get_font(size):
+    return pygame.font.Font("assets/font.ttf", size)
+
 
 def game_loop():
+
+    bg = load_and_scale_background('assets/images/background.png', WINDOW_WIDTH, WINDOW_HEIGHT)
+
+    screen.start_menu(bg)
+
     centipedes = create_centipedes()
     level = 1
+
+    pause_text = get_font(9).render("P to Pause", True, (255, 255, 255))
+    pause_rect = pause_text.get_rect(topleft=(10, 10))
+
     while True:
         # show_ui(player, level)
         for event in pygame.event.get():
-            event_handler(event)
+            event_handler(event, bg)
 
         # Actualizar posiciones
+        player.update()
+        centipedes.update()
+        bullets.update()
+
+        collided_mushroom = pygame.sprite.spritecollide(
+            player, mushrooms, False
+        )
+
+        if collided_mushroom:
+            # Ajustar la posición del jugador para evitar que traspase el hongo
+            for mushroom in collided_mushroom:
+                mushroom_collision_handler(mushroom, player)
+
+        # Verificar colisión entre el jugador y el centipede
+        if pygame.sprite.spritecollideany(player, centipedes):
+            player.lives -= 1
+            check_loss(player, bg)
+            player.rect.centerx = screen.screen_width // 2
+            player.rect.bottom = screen.screen_height - 10
+
+        # Verificar colisiones entre balas y segmentos del centipede
+        collisions = pygame.sprite.groupcollide(
+            bullets, centipedes, True, True
+        )
+
+        for bullet, hit_centipedes in collisions.items():
+            new_mushroom = Mushroom(
+                screen,
+                hit_centipedes[0].rect.x,
+                hit_centipedes[0].rect.y + 20,
+            )
+            mushrooms.add(new_mushroom)
+
+        if pygame.sprite.spritecollideany(player, centipedes):
+            screen.game_over_menu(bg)
+            pygame.quit()
+            sys.exit()
+
+        centipede_numbers = [centipede.num for centipede in centipedes]
+        for centipede in centipedes:
+            # Verificar si el centipede quedo solo (solo una cabeza),
+            # para aumentar su velocidad.
+            if centipede.num == len(centipedes) - 1:  # Si es el último,
+                # solo hay que chequear que el penultimo exista
+                if centipede.num - 1 not in centipede_numbers:
+                    centipede.increase_speed()
+            elif (
+                centipede.num == 0
+            ):  # Si es el primero, chequeamos que el segundo no exista
+                if centipede.num + 1 not in centipede_numbers:
+                    centipede.increase_speed()
+            else:
+                if (
+                    centipede.num + 1 not in centipede_numbers
+                    and centipede.num - 1 not in centipede_numbers
+                ):
+                    centipede.increase_speed()
+
+            # Verificar si este centipede en particular choca con algún hongo
+            collided_mushrooms = pygame.sprite.spritecollide(
+                centipede, mushrooms, False
+            )
+
+            if collided_mushrooms:
+                # Si chocó con algún hongo, invierte la dirección del centipede
+                centipede.collide_with_mushroom()
+
+        if not centipedes and check_win(level, bg) is False:
+            centipedes = create_centipedes(level)
+            for centipede in centipedes:
+                centipede.increase_speed()
+            level += 1
+
+        for mushroom in mushrooms:
+            # Verificar si el hongo fue chocado por una bala
+            collided_bullets = pygame.sprite.spritecollide(
+                mushroom, bullets, False
+            )
+
+            if collided_bullets:
+                mushroom.bullet_collision()
+                collided_bullets[0].kill()
+
+        # Dibujar
+        screen.screen.fill((0, 0, 0))
+        centipedes.draw(screen.screen)
+        bullets.draw(screen.screen)
+        mushrooms.draw(screen.screen)
+        screen.screen.blit(player.image, player.rect)
+
+        pygame.display.flip()
+        clock.tick(60)
+
+
+def games_loop():
+
+    bg = load_and_scale_background('assets/images/background.png', WINDOW_WIDTH, WINDOW_HEIGHT)
+
+    screen.start_menu(bg)
+
+    centipedes = create_centipedes()
+    level = 1
+
+    pause_text = get_font(9).render("P to Pause", True, (255, 255, 255))
+    pause_rect = pause_text.get_rect(topleft=(10, 10))
+
+    while True:
+        # show_ui(player, level)
+        for event in pygame.event.get():
+            event_handler(event, bg)
+
+        # Actualizar posiciones
+        screen.screen.fill('black')
         player.update()
         centipedes.update()
         bullets.update()
@@ -171,7 +311,7 @@ def game_loop():
             mushrooms.add(new_mushroom)
 
         if pygame.sprite.spritecollideany(player, centipedes):
-            screen.display_game_over()
+            screen.game_over_menu(bg)
             pygame.quit()
             sys.exit()
 
@@ -221,14 +361,16 @@ def game_loop():
                 collided_bullets[0].kill()
 
         # Dibujar
-        screen.screen.fill((0, 0, 0))
+        screen.screen.blit('black', (0, 0))# Draw background first
         centipedes.draw(screen.screen)
         bullets.draw(screen.screen)
         mushrooms.draw(screen.screen)
-        screen.screen.blit(player.image, player.rect)
+        screen.screen.blit(player.image, player.rect)  # Draw player
+        screen.screen.blit(pause_text, pause_rect)
 
         pygame.display.flip()
         clock.tick(60)
 
 
-game_loop()
+if __name__ == "__main__":
+    game_loop()
