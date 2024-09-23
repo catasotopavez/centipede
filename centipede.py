@@ -14,14 +14,13 @@ class Centipede(pygame.sprite.Sprite):
         self.speed_increased = False
 
         if self.__level == 1:
-            self.image = pygame.Surface((20, 20))
-            self.image.fill((0, 255, 0))
+            self.image = pygame.image.load('assets/centipede_segment.png').convert_alpha()
             self.__dx = -2
         elif self.__level == 2:
-            self.image = pygame.Surface((20, 20))
-            self.image.fill((0, 0, 255))
+            self.image = pygame.image.load('assets/centipede_segment.png').convert_alpha()
             self.__dx = -4
 
+        self.image = pygame.transform.scale(self.image, (20, 20))
         self.rect = self.image.get_rect()
         self.rect.right = self.__screen.screen_width - self.__right
         self.rect.top = 64

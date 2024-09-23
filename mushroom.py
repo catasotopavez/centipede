@@ -1,40 +1,44 @@
 import pygame
 
-
 class Mushroom(pygame.sprite.Sprite):
 
     def __init__(self, screen, position_x, position_y):
         pygame.sprite.Sprite.__init__(self)
         self.__screen = screen
 
-        # Definir el tamaño inicial del hongo
-        self.width = 20
-        self.height = 20
+        # Cargar las tres imágenes del hongo
+        self.mushroom_images = [
+            pygame.image.load('assets/mushroom_full.png').convert_alpha(),
+            pygame.image.load('assets/mushroom_damaged.png').convert_alpha(),
+            pygame.image.load('assets/mushroom_critical.png').convert_alpha()
+        ]
 
-        self.image = pygame.Surface((self.width, self.height))
-        self.image.fill((46, 54, 185))  # Color del hongo
+        # Escalar las imágenes si es necesario (opcional)
+        self.mushroom_images = [pygame.transform.scale(img, (20, 20)) for img in self.mushroom_images]
+
+        # Establecer la primera imagen como la inicial
+        self.image = self.mushroom_images[0]
+
+        # Rectángulo para la posición del hongo
         self.rect = self.image.get_rect()
-
         self.rect.centerx = position_x
         self.rect.bottom = position_y
 
+        # Estado del hongo (3 estados: completo, dañado, crítico)
+        self.state = 0  # Comienza con la primera imagen
+
     def bullet_collision(self):
-        """Reduce el tamaño del hongo en el eje y tras colisión con una bala"""
+        """Cambia la imagen del hongo al ser golpeado por una bala."""
 
-        # Reducir la altura en 5 píxeles
-        self.height -= 5
+        # Incrementar el estado del hongo (cambiar de imagen)
+        self.state += 1
 
-        if self.height > 0:
-            # Crear una nueva superficie con el nuevo tamaño
-            self.image = pygame.Surface((self.width, self.height))
-            self.image.fill((46, 54, 185))  # Volver a colorear el hongo
-
-            # Actualizar el rectángulo (rect)
-            self.rect = self.image.get_rect(
-                center=(self.rect.centerx, self.rect.centery)
-            )
+        if self.state < len(self.mushroom_images):
+            # Cambiar a la siguiente imagen de daño
+            self.image = self.mushroom_images[self.state]
         else:
-            # Si la altura es 0 o menor, eliminar el hongo
+            # Si el estado es mayor que el número de imágenes, el hongo es destruido
             self.kill()
-            return True
-        return False
+            return True  # Indicar que el hongo fue destruido
+
+        return False  # El hongo no ha sido destruido aún
