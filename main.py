@@ -17,17 +17,6 @@ clock = pygame.time.Clock()
 player = Player(screen)
 
 
-def show_ui(player, level, flip=True):
-    """Muestra la cantidad de vidas y el nivel actual en la pantalla."""
-    font = pygame.font.SysFont(None, 30)
-    lives_text = font.render(f"Lives: {player.lives}", True, (255, 255, 255))
-    level_text = font.render(f"Level: {level}", True, (255, 255, 255))
-    screen.blit(lives_text, (10, 10))
-    screen.blit(level_text, (10, 40))
-    if flip:
-        pygame.display.flip()
-
-
 def create_centipedes(level=1):
     centipedes = pygame.sprite.Group()
     for segments in range(8):  # Número de segmentos
@@ -131,8 +120,8 @@ def mushroom_collision_handler(mushroom, player):
 def game_loop():
     centipedes = create_centipedes()
     level = 1
+    score = 0
     while True:
-        # show_ui(player, level)
         for event in pygame.event.get():
             event_handler(event)
 
@@ -168,6 +157,8 @@ def game_loop():
                 hit_centipedes[0].rect.x,
                 hit_centipedes[0].rect.y + 20,
             )
+            print("Le pegó al cenpies")
+            score += 10 * len(hit_centipedes) 
             mushrooms.add(new_mushroom)
 
         if pygame.sprite.spritecollideany(player, centipedes):
@@ -226,6 +217,9 @@ def game_loop():
         bullets.draw(screen.screen)
         mushrooms.draw(screen.screen)
         screen.screen.blit(player.image, player.rect)
+        screen.display_score(score)
+        screen.show_ui(player, level)
+
 
         pygame.display.flip()
         clock.tick(60)

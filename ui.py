@@ -1,6 +1,5 @@
 import pygame
 
-
 class UI:
     def __init__(self):
         self.screen_width = 640
@@ -31,3 +30,19 @@ class UI:
         )
         pygame.display.flip()
         pygame.time.wait(2000)
+
+    def display_score(self, score):
+        """Muestra el puntaje en la pantalla."""
+        font = pygame.font.SysFont(None, 36)
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+        self.screen.blit(score_text, (10, 10))
+
+    def show_ui(self, player, level, flip=True):
+        """Muestra la cantidad de vidas y el nivel actual en la pantalla."""
+        font = pygame.font.SysFont(None, 30)
+        lives_text = font.render(f"Lives: {player.lives}", True, (255, 255, 255))
+        level_text = font.render(f"Level: {level}", True, (255, 255, 255))
+        self.screen.blit(lives_text, (10, 40))  # Just below the score
+        self.screen.blit(level_text, (10, 70))
+        if flip:
+            pygame.display.flip()
