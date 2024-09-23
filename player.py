@@ -6,9 +6,8 @@ class Player(pygame.sprite.Sprite):
         """Inicializa el jugador con su imagen, posición y velocidad."""
         pygame.sprite.Sprite.__init__(self)
         self.__screen = screen
-
-        self.image = pygame.Surface((40, 20))
-        self.image.fill((255, 255, 255))
+        self.image = pygame.image.load('assets/player.png').convert_alpha()
+        self.image = pygame.transform.scale(self.image, (40, 20))
         self.rect = self.image.get_rect()
         self.lives = 3
 

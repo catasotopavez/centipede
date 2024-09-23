@@ -4,6 +4,8 @@ from centipede import Centipede
 from player import Player
 from bullet import Bullet
 from mushroom import Mushroom
+from spider import Spider
+
 from ui import UI
 import random
 
@@ -124,7 +126,13 @@ def game_loop():
     centipedes = create_centipedes()
     level = 1
     score = 0
+
+    spiders = pygame.sprite.Group()
+    spider_spawn_time = 7000 
+    last_spider_spawn = pygame.time.get_ticks()
+
     while True:
+        current_time = pygame.time.get_ticks()
         for event in pygame.event.get():
             event_handler(event)
 
@@ -132,10 +140,24 @@ def game_loop():
         player.update()
         centipedes.update()
         bullets.update()
+        spiders.update() 
+
+        # Crear una nueva araña 
+        if current_time - last_spider_spawn > spider_spawn_time:
+            spider = Spider(screen)
+            spiders.add(spider)
+            last_spider_spawn = current_time 
+     
+
+        spider_collisions = pygame.sprite.groupcollide(bullets, spiders, True, True)
+        if spider_collisions:
+            score += 20  # Aumentar puntaje por cada araña eliminada
+            print("Araña eliminada")
 
         collided_mushroom = pygame.sprite.spritecollide(
             player, mushrooms, False
         )
+
 
         if collided_mushroom:
             # Ajustar la posición del jugador para evitar que traspase el hongo
@@ -163,6 +185,13 @@ def game_loop():
             print("Le pegó al cenpies")
             score += 10 * len(hit_centipedes) 
             mushrooms.add(new_mushroom)
+        
+
+        if pygame.sprite.spritecollideany(player, spiders):
+            player.lives -= 1
+            check_loss(player)
+            player.rect.centerx = screen.screen_width // 2
+            player.rect.bottom = screen.screen_height - 10
 
         if pygame.sprite.spritecollideany(player, centipedes):
             screen.display_game_over()
@@ -224,6 +253,7 @@ def game_loop():
         centipedes.draw(screen.screen)
         bullets.draw(screen.screen)
         mushrooms.draw(screen.screen)
+        spiders.draw(screen.screen)
         screen.screen.blit(player.image, player.rect)
         screen.display_score(score)
         screen.show_ui(player, level)
