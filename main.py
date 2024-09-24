@@ -5,6 +5,7 @@ from player import Player
 from bullet import Bullet
 from mushroom import Mushroom
 from spider import Spider
+from flea import Flea
 import time
 
 from ui import UI
@@ -131,6 +132,10 @@ def game_loop():
     # Grupo para hongos animados
     animated_mushrooms = pygame.sprite.Group()
     animate_mushrooms = False
+
+    fleas = pygame.sprite.Group()
+    flea_spawn_time = 7000
+    last_flea_spawn = pygame.time.get_ticks()
     
     sprites_to_draw = 0
     animation_speed = 0.5  # Velocidad de la animación (0.5 segundos entre sprites)
@@ -150,6 +155,27 @@ def game_loop():
         centipedes.update()
         bullets.update()
         spiders.update() 
+        fleas.update() 
+
+        #MODIFICAR ACA EL NIVEL DE LA PULGA
+        if level >= 1 and current_time - last_flea_spawn > flea_spawn_time:
+            flea = Flea(screen, mushrooms)
+            fleas.add(flea)
+            last_flea_spawn = current_time
+
+        # Verificar colisión entre las balas y las pulgas
+        flea_collisions = pygame.sprite.groupcollide(bullets, fleas, True, True)
+        if flea_collisions:
+            score += 50  # Sumar puntos por cada pulga eliminada
+            print("Pulga eliminada")
+        
+         # Verificar colisiones entre jugador y pulgas
+        if pygame.sprite.spritecollideany(player, fleas):
+            player.lives -= 1  # Reducir la vida del jugador
+            check_loss(player)  # Verificar si el jugador ha perdido todas las vidas
+            player.rect.centerx = screen.screen_width // 2
+            player.rect.bottom = screen.screen_height - 10
+            flea.kill()
 
         # Crear una nueva araña 
         if current_time - last_spider_spawn > spider_spawn_time:
@@ -259,6 +285,7 @@ def game_loop():
         # Dibujar otros elementos
         mushrooms.draw(screen.screen)
         spiders.draw(screen.screen)
+        fleas.draw(screen.screen)
         screen.screen.blit(player.image, player.rect)
         screen.display_score(score)
         screen.show_ui(player, level)
