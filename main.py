@@ -6,6 +6,7 @@ from bullet import Bullet
 from mushroom import Mushroom
 from spider import Spider
 from flea import Flea
+from scorpion import Scorpion
 import time
 
 from ui import UI
@@ -31,6 +32,7 @@ def create_centipedes(level=1):
         )
         centipedes.add(centipede_segment)
     return centipedes
+
 
 
 # Grupo de proyectiles
@@ -145,6 +147,11 @@ def game_loop():
     spider_spawn_time = 7000 
     last_spider_spawn = pygame.time.get_ticks()
 
+    scorpions = pygame.sprite.Group() 
+    scorpion_spawn_time = 10000 
+    last_scorpion_spawn = pygame.time.get_ticks()
+
+
     while True:
         current_time = pygame.time.get_ticks()
         for event in pygame.event.get():
@@ -156,12 +163,19 @@ def game_loop():
         bullets.update()
         spiders.update() 
         fleas.update() 
+        scorpions.update()
 
         #MODIFICAR ACA EL NIVEL DE LA PULGA
         if level >= 1 and current_time - last_flea_spawn > flea_spawn_time:
             flea = Flea(screen, mushrooms)
             fleas.add(flea)
             last_flea_spawn = current_time
+        
+        # Crear un nuevo escorpión cada cierto tiempo
+        if current_time - last_scorpion_spawn > scorpion_spawn_time:
+            scorpion = Scorpion(screen, mushrooms)
+            scorpions.add(scorpion)
+            last_scorpion_spawn = current_time
 
         # Verificar colisión entre las balas y las pulgas
         flea_collisions = pygame.sprite.groupcollide(bullets, fleas, True, True)
@@ -286,6 +300,7 @@ def game_loop():
         mushrooms.draw(screen.screen)
         spiders.draw(screen.screen)
         fleas.draw(screen.screen)
+        scorpions.draw(screen.screen) 
         screen.screen.blit(player.image, player.rect)
         screen.display_score(score)
         screen.show_ui(player, level)

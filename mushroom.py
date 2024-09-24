@@ -5,6 +5,7 @@ class Mushroom(pygame.sprite.Sprite):
     def __init__(self, screen, position_x, position_y):
         pygame.sprite.Sprite.__init__(self)
         self.__screen = screen
+        self.poisoned = False 
 
         # Cargar las tres imágenes del hongo
         self.mushroom_images = [
@@ -42,3 +43,8 @@ class Mushroom(pygame.sprite.Sprite):
             return True  # Indicar que el hongo fue destruido
 
         return False  # El hongo no ha sido destruido aún
+    def poison(self):
+            """Envenena el hongo cambiando su color."""
+            self.poisoned = True
+            self.image = pygame.image.load('assets/mushroom_poisoned.png').convert_alpha()
+            self.image = pygame.transform.scale(self.image, (20, 20)) 
