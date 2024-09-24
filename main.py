@@ -13,7 +13,7 @@ from ui import UI
 import random
 
 pygame.init()
-pygame.mixer.init() 
+pygame.mixer.init()
 
 screen = UI()
 pygame.display.set_caption("Centipede")
@@ -66,18 +66,22 @@ for j in range(20):  # Número de hongos
 def check_win(level):
     """Verifica si el jugador ha ganado el juego."""
     if level == 3:
-        screen.display_win()
-        pygame.quit()
-        sys.exit()
+        if screen.you_win_menu():
+            game_loop()
+        else:
+            pygame.quit()
+            sys.exit()
     return False
 
 
 def check_loss(player):
     """Verifica si el jugador ha perdido el juego."""
     if player.lives == 0:
-        screen.display_game_over()
-        pygame.quit()
-        sys.exit()
+        if screen.game_over_menu():
+            game_loop()
+        else:
+            pygame.quit()
+            sys.exit()
     return False
 
 
@@ -85,15 +89,22 @@ def event_handler(event: pygame.event.Event):
     if event.type == pygame.QUIT:
         pygame.quit()
         sys.exit()
+
+    # Combine KEYDOWN checks into a single block
     elif event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_LEFT:
+        if event.key == pygame.K_p:  # Pause the game
+            if not screen.pause_menu('PAUSED'):
+                running = False
+                return
+        elif event.key == pygame.K_LEFT:
             player.move_left()
         elif event.key == pygame.K_RIGHT:
             player.move_right()
-        elif event.key == pygame.K_SPACE:  # Disparar
+        elif event.key == pygame.K_SPACE:  # Shoot bullet
             bullet = Bullet(screen, player)
             bullets.add(bullet)
-            shoot_sound.play() 
+
+    # Handle stopping movement when keys are released
     elif event.type == pygame.KEYUP:
         if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
             player.stop()
@@ -127,10 +138,13 @@ def mushroom_collision_handler(mushroom, player):
 
 
 def game_loop():
+
+    screen.start_menu()
+
     centipedes = create_centipedes()
     level = 1
     score = 0
-    
+
     # Grupo para hongos animados
     animated_mushrooms = pygame.sprite.Group()
     animate_mushrooms = False
@@ -138,17 +152,17 @@ def game_loop():
     fleas = pygame.sprite.Group()
     flea_spawn_time = 7000
     last_flea_spawn = pygame.time.get_ticks()
-    
+
     sprites_to_draw = 0
     animation_speed = 0.5  # Velocidad de la animación (0.5 segundos entre sprites)
     last_time = time.time()
 
     spiders = pygame.sprite.Group()
-    spider_spawn_time = 7000 
+    spider_spawn_time = 7000
     last_spider_spawn = pygame.time.get_ticks()
 
-    scorpions = pygame.sprite.Group() 
-    scorpion_spawn_time = 10000 
+    scorpions = pygame.sprite.Group()
+    scorpion_spawn_time = 10000
     last_scorpion_spawn = pygame.time.get_ticks()
 
 
@@ -161,8 +175,8 @@ def game_loop():
         player.update()
         centipedes.update()
         bullets.update()
-        spiders.update() 
-        fleas.update() 
+        spiders.update()
+        fleas.update()
         scorpions.update()
 
         #MODIFICAR ACA EL NIVEL DE LA PULGA
@@ -170,7 +184,7 @@ def game_loop():
             flea = Flea(screen, mushrooms)
             fleas.add(flea)
             last_flea_spawn = current_time
-        
+
         # Crear un nuevo escorpión cada cierto tiempo
         if current_time - last_scorpion_spawn > scorpion_spawn_time:
             scorpion = Scorpion(screen, mushrooms)
@@ -182,21 +196,22 @@ def game_loop():
         if flea_collisions:
             score += 50  # Sumar puntos por cada pulga eliminada
             print("Pulga eliminada")
-        
+
          # Verificar colisiones entre jugador y pulgas
         if pygame.sprite.spritecollideany(player, fleas):
             player.lives -= 1  # Reducir la vida del jugador
             check_loss(player)  # Verificar si el jugador ha perdido todas las vidas
+            screen.pause_menu("Lost a life")
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
             flea.kill()
 
-        # Crear una nueva araña 
+        # Crear una nueva araña
         if current_time - last_spider_spawn > spider_spawn_time:
             spider = Spider(screen)
             spiders.add(spider)
-            last_spider_spawn = current_time 
-     
+            last_spider_spawn = current_time
+
         # Colisiones entre balas y arañas
         spider_collisions = pygame.sprite.groupcollide(bullets, spiders, True, True)
         if spider_collisions:
@@ -213,6 +228,7 @@ def game_loop():
         if pygame.sprite.spritecollideany(player, centipedes):
             player.lives -= 1
             check_loss(player)
+            screen.pause_menu("Lost a life")
             animate_mushrooms = True
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
@@ -227,8 +243,8 @@ def game_loop():
                 hit_centipedes[0].rect.x,
                 hit_centipedes[0].rect.y + 20,
             )
-            score += 10 * len(hit_centipedes) 
-            
+            score += 10 * len(hit_centipedes)
+
 
             # Cambiar la cabeza del centipede si corresponde
             if hit_centipedes[0].num - 1 in centipede_numbers:
@@ -241,6 +257,7 @@ def game_loop():
         if pygame.sprite.spritecollideany(player, spiders):
             player.lives -= 1
             check_loss(player)
+            screen.pause_menu('Lost a life')
             animate_mushrooms = True
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
@@ -265,7 +282,7 @@ def game_loop():
             collided_bullets = pygame.sprite.spritecollide(mushroom, bullets, False)
             if collided_bullets:
                 if mushroom.bullet_collision():
-                    score += 1 
+                    score += 1
                     new_mushroom = Mushroom(screen, mushroom.rect.centerx, mushroom.rect.bottom)
                     animated_mushrooms.add(new_mushroom)
                     print("Elimino un hongo")
@@ -287,7 +304,7 @@ def game_loop():
             for i, sprite in enumerate(animated_mushrooms):
                 if i < sprites_to_draw:
                     screen.screen.blit(sprite.image, sprite.rect)
-                    
+
             # Si todos los hongos fueron dibujados, muévelos al grupo `mushrooms`
             if sprites_to_draw >= len(animated_mushrooms):
                 for mushroom in animated_mushrooms:
@@ -300,15 +317,14 @@ def game_loop():
         mushrooms.draw(screen.screen)
         spiders.draw(screen.screen)
         fleas.draw(screen.screen)
-        scorpions.draw(screen.screen) 
+        scorpions.draw(screen.screen)
         screen.screen.blit(player.image, player.rect)
         screen.display_score(score)
         screen.show_ui(player, level)
+        screen.show_pause()
 
         pygame.display.flip()
         clock.tick(60)
 
-
-
-
-game_loop()
+if __name__ == "__main__":
+    game_loop()
