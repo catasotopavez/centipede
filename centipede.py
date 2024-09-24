@@ -12,13 +12,20 @@ class Centipede(pygame.sprite.Sprite):
         self.__reached_bottom = False
         self.__level = level
         self.speed_increased = False
+        if number == 7:
+            self.is_head = True
+        else:
+            self.is_head = False
 
         if self.__level == 1:
-            self.image = pygame.image.load('assets/centipede_segment.png').convert_alpha()
             self.__dx = -2
         elif self.__level == 2:
-            self.image = pygame.image.load('assets/centipede_segment.png').convert_alpha()
             self.__dx = -4
+        
+        if self.is_head:
+            self.image = pygame.image.load('assets/centipede_head.png').convert_alpha()
+        else:
+            self.image = pygame.image.load('assets/centipede_segment.png').convert_alpha()
 
         self.image = pygame.transform.scale(self.image, (20, 20))
         self.rect = self.image.get_rect()

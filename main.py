@@ -5,6 +5,7 @@ from player import Player
 from bullet import Bullet
 from mushroom import Mushroom
 from spider import Spider
+import time
 
 from ui import UI
 import random
@@ -126,6 +127,14 @@ def game_loop():
     centipedes = create_centipedes()
     level = 1
     score = 0
+    
+    # Grupo para hongos animados
+    animated_mushrooms = pygame.sprite.Group()
+    animate_mushrooms = False
+    
+    sprites_to_draw = 0
+    animation_speed = 0.5  # Velocidad de la animación (0.5 segundos entre sprites)
+    last_time = time.time()
 
     spiders = pygame.sprite.Group()
     spider_spawn_time = 7000 
@@ -148,33 +157,29 @@ def game_loop():
             spiders.add(spider)
             last_spider_spawn = current_time 
      
-
+        # Colisiones entre balas y arañas
         spider_collisions = pygame.sprite.groupcollide(bullets, spiders, True, True)
         if spider_collisions:
             score += 20  # Aumentar puntaje por cada araña eliminada
             print("Araña eliminada")
 
-        collided_mushroom = pygame.sprite.spritecollide(
-            player, mushrooms, False
-        )
-
-
+        # Colisión con hongos
+        collided_mushroom = pygame.sprite.spritecollide(player, mushrooms, False)
         if collided_mushroom:
-            # Ajustar la posición del jugador para evitar que traspase el hongo
             for mushroom in collided_mushroom:
                 mushroom_collision_handler(mushroom, player)
 
-        # Verificar colisión entre el jugador y el centipede
+        # Verificar colisión con centipede
         if pygame.sprite.spritecollideany(player, centipedes):
             player.lives -= 1
             check_loss(player)
+            animate_mushrooms = True
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
 
-        # Verificar colisiones entre balas y segmentos del centipede
-        collisions = pygame.sprite.groupcollide(
-            bullets, centipedes, True, True
-        )
+        # Colisiones entre balas y centipede
+        collisions = pygame.sprite.groupcollide(bullets, centipedes, True, True)
+        centipede_numbers = [centipede.num for centipede in centipedes]
 
         for bullet, hit_centipedes in collisions.items():
             new_mushroom = Mushroom(
@@ -182,49 +187,31 @@ def game_loop():
                 hit_centipedes[0].rect.x,
                 hit_centipedes[0].rect.y + 20,
             )
-            print("Le pegó al cenpies")
             score += 10 * len(hit_centipedes) 
-            mushrooms.add(new_mushroom)
-        
+            
 
+            # Cambiar la cabeza del centipede si corresponde
+            if hit_centipedes[0].num - 1 in centipede_numbers:
+                position_in_centipedes = centipede_numbers.index(hit_centipedes[0].num - 1)
+                new_head = centipedes.sprites()[position_in_centipedes]
+                new_head.image = pygame.image.load('assets/centipede_head.png').convert_alpha()
+                new_head.image = pygame.transform.scale(new_head.image, (20, 20))
+
+        # Verificar colisiones con arañas
         if pygame.sprite.spritecollideany(player, spiders):
             player.lives -= 1
             check_loss(player)
+            animate_mushrooms = True
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
 
-        if pygame.sprite.spritecollideany(player, centipedes):
-            screen.display_game_over()
-            pygame.quit()
-            sys.exit()
-
-        centipede_numbers = [centipede.num for centipede in centipedes]
         for centipede in centipedes:
-            # Verificar si el centipede quedo solo (solo una cabeza),
-            # para aumentar su velocidad.
-            if centipede.num == len(centipedes) - 1:  # Si es el último,
-                # solo hay que chequear que el penultimo exista
+            if centipede.is_head:
                 if centipede.num - 1 not in centipede_numbers:
                     centipede.increase_speed()
-            elif (
-                centipede.num == 0
-            ):  # Si es el primero, chequeamos que el segundo no exista
-                if centipede.num + 1 not in centipede_numbers:
-                    centipede.increase_speed()
-            else:
-                if (
-                    centipede.num + 1 not in centipede_numbers
-                    and centipede.num - 1 not in centipede_numbers
-                ):
-                    centipede.increase_speed()
 
-            # Verificar si este centipede en particular choca con algún hongo
-            collided_mushrooms = pygame.sprite.spritecollide(
-                centipede, mushrooms, False
-            )
-
+            collided_mushrooms = pygame.sprite.spritecollide(centipede, mushrooms, False)
             if collided_mushrooms:
-                # Si chocó con algún hongo, invierte la dirección del centipede
                 centipede.collide_with_mushroom()
 
         if not centipedes and check_win(level) is False:
@@ -233,34 +220,53 @@ def game_loop():
                 centipede.increase_speed()
             level += 1
 
+        # Colisiones entre balas y hongos
         for mushroom in mushrooms:
-            # Verificar si el hongo fue chocado por una bala
-            collided_bullets = pygame.sprite.spritecollide(
-                mushroom, bullets, False
-            )
-
+            collided_bullets = pygame.sprite.spritecollide(mushroom, bullets, False)
             if collided_bullets:
                 if mushroom.bullet_collision():
                     score += 1 
+                    new_mushroom = Mushroom(screen, mushroom.rect.centerx, mushroom.rect.bottom)
+                    animated_mushrooms.add(new_mushroom)
                     print("Elimino un hongo")
                 collided_bullets[0].kill()
-                
-                
-                
 
         # Dibujar
         screen.screen.fill((0, 0, 0))
         centipedes.draw(screen.screen)
         bullets.draw(screen.screen)
+
+        # Animar hongos golpeados (en `animated_mushrooms`)
+        if animate_mushrooms:
+            current_time = time.time()
+            if current_time - last_time > animation_speed and sprites_to_draw < len(animated_mushrooms):
+                sprites_to_draw += 1
+                last_time = current_time
+
+            # Dibuja los hongos animados uno por uno
+            for i, sprite in enumerate(animated_mushrooms):
+                if i < sprites_to_draw:
+                    screen.screen.blit(sprite.image, sprite.rect)
+                    
+            # Si todos los hongos fueron dibujados, muévelos al grupo `mushrooms`
+            if sprites_to_draw >= len(animated_mushrooms):
+                for mushroom in animated_mushrooms:
+                    mushrooms.add(mushroom)
+                animated_mushrooms.empty()  # Vacía el grupo de hongos animados
+                sprites_to_draw = 0
+                animate_mushrooms = False
+
+        # Dibujar otros elementos
         mushrooms.draw(screen.screen)
         spiders.draw(screen.screen)
         screen.screen.blit(player.image, player.rect)
         screen.display_score(score)
         screen.show_ui(player, level)
 
-
         pygame.display.flip()
         clock.tick(60)
+
+
 
 
 game_loop()
