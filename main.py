@@ -8,6 +8,7 @@ from spider import Spider
 from flea import Flea
 from scorpion import Scorpion
 import time
+import sounds
 
 from ui import UI
 import random
@@ -102,6 +103,7 @@ def event_handler(event: pygame.event.Event):
             player.move_right()
         elif event.key == pygame.K_SPACE:  # Shoot bullet
             bullet = Bullet(screen, player)
+            sounds.shooting()
             bullets.add(bullet)
 
     # Handle stopping movement when keys are released
@@ -285,6 +287,7 @@ def game_loop():
                     score += 1
                     new_mushroom = Mushroom(screen, mushroom.rect.centerx, mushroom.rect.bottom)
                     animated_mushrooms.add(new_mushroom)
+                    sounds.mushroom_destroyed()
                     print("Elimino un hongo")
                 collided_bullets[0].kill()
 

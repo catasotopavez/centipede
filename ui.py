@@ -1,6 +1,7 @@
 import pygame
 from button import Button
 from settings import *
+import sounds
 
 class UI:
     def __init__(self):
@@ -10,28 +11,6 @@ class UI:
             (self.screen_width, self.screen_height)
         )
         pygame.display.set_caption("Centipede")
-
-    def display_game_over(self):
-        """Muestra un mensaje de Game Over en el centro de la pantalla."""
-        font = pygame.font.SysFont(None, 55)
-        game_over_text = font.render("Game Over", True, (255, 0, 0))
-        self.screen.blit(
-            game_over_text,
-            (self.screen_width // 2 - 100, self.screen_height // 2 - 30),
-        )
-        pygame.display.flip()
-        pygame.time.wait(2000)
-
-    def display_win(self):
-        """Muestra un mensaje de victoria en el centro de la pantalla."""
-        font = pygame.font.SysFont(None, 55)
-        win_text = font.render("You Win!", True, (0, 255, 0))  # Texto verde
-        self.screen.blit(
-            win_text,
-            (self.screen_width // 2 - 100, self.screen_height // 2 - 30),
-        )
-        pygame.display.flip()
-        pygame.time.wait(2000)
 
     def display_score(self, score):
         """Muestra el puntaje en la pantalla."""
@@ -116,6 +95,8 @@ class UI:
 
     def start_menu(self):
         """Display pause menu with continue and quit options."""
+        sounds.menu()
+
         bg = BACKGROUND
         menu_running = True
         while menu_running:
@@ -155,6 +136,7 @@ class UI:
                     exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if play_button.checkForInput(mouse_pos):
+                        sounds.stop_music()
                         menu_running = False  # Exit pause menu to continue the game
                     if quit_button.checkForInput(mouse_pos):
                         pygame.quit()
@@ -164,6 +146,7 @@ class UI:
 
     def game_over_menu(self):
         """Display game over menu with main menu and quit options."""
+        sounds.game_over()
         bg = BACKGROUND
         menu_running = True
         while menu_running:
@@ -203,6 +186,7 @@ class UI:
                     exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if main_menu_button.checkForInput(mouse_pos):
+
                         return True
                     if quit_button.checkForInput(mouse_pos):
                         pygame.quit()
@@ -214,6 +198,7 @@ class UI:
 
     def you_win_menu(self):
         """Display win menu with restart and quit options."""
+        sounds.victory()
         bg = BACKGROUND
         menu_running = True
         while menu_running:
