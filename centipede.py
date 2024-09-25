@@ -30,7 +30,7 @@ class Centipede(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (20, 20))
         self.rect = self.image.get_rect()
         self.rect.right = self.__screen.screen_width - self.__right
-        self.rect.top = 64
+        self.rect.top = 40
 
     def update(self):
         """Actualiza la posición del centipede en la pantalla."""
