@@ -8,6 +8,7 @@ block_destroyed_sound = pygame.mixer.Sound('sounds/block_destroyed_sound.wav')
 shoot_sound = pygame.mixer.Sound('sounds/shoot.mp3')
 lose_music = pygame.mixer.Sound('assets/music/lose-music.mp3')
 victory_music = pygame.mixer.Sound('assets/music/victory-music.mp3')
+animated_mushroom_sound = pygame.mixer.Sound('sounds/animated_mushroom.mp3')
 
 # Cargar música
 menu_music = 'assets/music/menu-music.mp3'
@@ -20,6 +21,10 @@ def mushroom_destroyed():
 # Cuando se active un powerup
 def shooting():
     shoot_sound.play()
+
+# Cuando se regenera un mushroom
+def animate_mushroom_sound():
+    animated_mushroom_sound.play()
 
 # Reproducir música de fondo
 def play_music(music_file):

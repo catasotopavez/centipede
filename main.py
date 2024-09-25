@@ -24,6 +24,8 @@ clock = pygame.time.Clock()
 player = Player(screen)
 shoot_sound = pygame.mixer.Sound('sounds/shoot.mp3')
 
+global animate_mushrooms
+animate_mushrooms = False
 
 def create_centipedes(level=1):
     centipedes = pygame.sprite.Group()
@@ -75,10 +77,12 @@ def check_win(level):
     return False
 
 
-def check_loss(player):
+def check_loss(player, fleas):
     """Verifica si el jugador ha perdido el juego."""
     if player.lives == 0:
         if screen.game_over_menu():
+            for flea in fleas:
+                flea.kill()
             game_loop()
         else:
             pygame.quit()
@@ -137,8 +141,7 @@ def mushroom_collision_handler(mushroom, player):
             player.rect.centerx > mushroom.rect.centerx
         ):  # Si el jugador está a la derecha
             player.rect.left = mushroom.rect.right
-
-
+  
 def game_loop():
 
     screen.start_menu()
@@ -156,7 +159,7 @@ def game_loop():
     last_flea_spawn = pygame.time.get_ticks()
 
     sprites_to_draw = 0
-    animation_speed = 0.5  # Velocidad de la animación (0.5 segundos entre sprites)
+    animation_speed = 1  # Velocidad de la animación (0.5 segundos entre sprites)
     last_time = time.time()
 
     spiders = pygame.sprite.Group()
@@ -197,16 +200,26 @@ def game_loop():
         flea_collisions = pygame.sprite.groupcollide(bullets, fleas, True, True)
         if flea_collisions:
             score += 50  # Sumar puntos por cada pulga eliminada
+            for flea in flea_collisions.values():
+                flea[0].kill()  # Asegurarse de que la pulga se elimina correctamente
             print("Pulga eliminada")
 
          # Verificar colisiones entre jugador y pulgas
         if pygame.sprite.spritecollideany(player, fleas):
             player.lives -= 1  # Reducir la vida del jugador
-            check_loss(player)  # Verificar si el jugador ha perdido todas las vidas
-            screen.pause_menu("Lost a life")
+            check_loss(player, fleas)  # Verificar si el jugador ha perdido todas las vidas
+            animate_mushrooms = True
+            for flea in fleas:
+                flea.kill()  
+            for spider in spiders:
+                spider.kill()
+            for centipede in centipedes:
+                centipede.kill()
+            for bullet in bullets:
+                bullet.kill()
+            centipedes = create_centipedes(level)
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
-            flea.kill()
 
         # Crear una nueva araña
         if current_time - last_spider_spawn > spider_spawn_time:
@@ -229,9 +242,17 @@ def game_loop():
         # Verificar colisión con centipede
         if pygame.sprite.spritecollideany(player, centipedes):
             player.lives -= 1
-            check_loss(player)
-            screen.pause_menu("Lost a life")
+            check_loss(player, fleas)
             animate_mushrooms = True
+            for flea in fleas:
+                flea.kill()  
+            for spider in spiders:
+                spider.kill()
+            for centipede in centipedes:
+                centipede.kill()
+            for bullet in bullets:
+                bullet.kill()
+            centipedes = create_centipedes(level)
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
 
@@ -258,9 +279,17 @@ def game_loop():
         # Verificar colisiones con arañas
         if pygame.sprite.spritecollideany(player, spiders):
             player.lives -= 1
-            check_loss(player)
-            screen.pause_menu('Lost a life')
+            check_loss(player, fleas)
             animate_mushrooms = True
+            for flea in fleas:
+                flea.kill()  
+            for spider in spiders:
+                spider.kill()
+            for centipede in centipedes:
+                centipede.kill()
+            for bullet in bullets:
+                bullet.kill()
+            centipedes = create_centipedes(level)
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
 
@@ -293,7 +322,6 @@ def game_loop():
 
         # Dibujar
         screen.screen.fill((0, 0, 0))
-        centipedes.draw(screen.screen)
         bullets.draw(screen.screen)
 
         # Animar hongos golpeados (en `animated_mushrooms`)
@@ -302,6 +330,7 @@ def game_loop():
             if current_time - last_time > animation_speed and sprites_to_draw < len(animated_mushrooms):
                 sprites_to_draw += 1
                 last_time = current_time
+                sounds.animate_mushroom_sound()
 
             # Dibuja los hongos animados uno por uno
             for i, sprite in enumerate(animated_mushrooms):
@@ -315,13 +344,22 @@ def game_loop():
                 animated_mushrooms.empty()  # Vacía el grupo de hongos animados
                 sprites_to_draw = 0
                 animate_mushrooms = False
+                time.sleep(0.5)
 
         # Dibujar otros elementos
         mushrooms.draw(screen.screen)
-        spiders.draw(screen.screen)
-        fleas.draw(screen.screen)
-        scorpions.draw(screen.screen)
-        screen.screen.blit(player.image, player.rect)
+        if animate_mushrooms and len(animated_mushrooms) == 0:
+            screen.screen.blit(player.image, player.rect)
+            spiders.draw(screen.screen)
+            fleas.draw(screen.screen)
+            scorpions.draw(screen.screen)
+            centipedes.draw(screen.screen)
+        if not animate_mushrooms:
+            screen.screen.blit(player.image, player.rect)
+            spiders.draw(screen.screen)
+            fleas.draw(screen.screen)
+            scorpions.draw(screen.screen)
+            centipedes.draw(screen.screen)
         screen.display_score(score)
         screen.show_ui(player, level)
         screen.show_pause()
