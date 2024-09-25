@@ -308,6 +308,14 @@ def game_loop():
                 centipede.increase_speed()
             level += 1
 
+        # Colisiones entre balas y escorpiones
+        scorpion_collisions = pygame.sprite.groupcollide(bullets, scorpions, True, True)
+        if scorpion_collisions:
+            score += 30  # Sumar puntos por cada escorpión eliminado
+            print("Escorpión eliminado")
+            for scorpion in scorpion_collisions.values():
+                scorpion[0].kill()
+
         # Colisiones entre balas y hongos
         for mushroom in mushrooms:
             collided_bullets = pygame.sprite.spritecollide(mushroom, bullets, False)
