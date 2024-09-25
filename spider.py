@@ -9,7 +9,7 @@ class Spider(pygame.sprite.Sprite):
 
         # Cargar la imagen de la araña
         self.image = pygame.image.load('assets/spider.png').convert_alpha()
-        self.image = pygame.transform.scale(self.image, (30, 30))  # Ajusta el tamaño si es necesario
+        self.image = pygame.transform.scale(self.image, (40, 40))  # Ajusta el tamaño si es necesario
 
         self.rect = self.image.get_rect()
 

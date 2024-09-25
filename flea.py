@@ -12,7 +12,7 @@ class Flea(pygame.sprite.Sprite):
         self.__screen = screen
         self.mushrooms = mushrooms  
         self.image = pygame.image.load('assets/flea.png').convert_alpha()
-        self.image = pygame.transform.scale(self.image, (20, 20))
+        self.image = pygame.transform.scale(self.image, (30, 30))
         self.rect = self.image.get_rect()
         self.rect.x = random.randint(0, self.__screen.screen_width - self.rect.width)
         self.rect.y = 0 

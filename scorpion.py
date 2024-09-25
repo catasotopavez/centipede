@@ -10,7 +10,7 @@ class Scorpion(pygame.sprite.Sprite):
 
         # Cargar la imagen del escorpión
         self.image = pygame.image.load('assets/scorpion.png').convert_alpha()
-        self.image = pygame.transform.scale(self.image, (20, 20))
+        self.image = pygame.transform.scale(self.image, (50, 50))
 
         # Establecer la posición inicial (en una coordenada y aleatoria, moviéndose de izquierda a derecha)
         self.rect = self.image.get_rect()
