@@ -59,10 +59,18 @@ class Centipede(pygame.sprite.Sprite):
                 self.rect.top += 32
                 self.__reached_bottom = False
 
-    # Si choca con un hongo, cambia el sentido del movimiento
-    def collide_with_mushroom(self):
-        self.__dx = -self.__dx  # Invierte la dirección horizontal
-        self.rect.top += 20
+
+    def change_movement(self):
+        '''Cambia la dirección de x y baja al cienpies.'''
+        if not self.__reached_bottom:
+            self.rect.top += 16
+        else:
+            self.rect.top -= 16
+        self.__dx = -self.__dx
+    
+    def change_direction(self):
+        '''Cambia el sentido.'''
+        self.__dx = -self.__dx
 
     def increase_speed(self):
         """Aumenta la velocidad del centipede."""

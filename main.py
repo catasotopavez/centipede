@@ -36,21 +36,21 @@ def generate_mushrooms(mushrooms):
     mushrooms_x = []
     mushrooms_y = []
     for j in range(20):  # Número de hongos
-        position_x = random.randint(20, screen.screen_width - 20)
+        position_x = random.randint(40, screen.screen_width - 20)
         while (
             position_x in mushrooms_x
             or position_x + 20 in mushrooms_x
             or position_x - 20 in mushrooms_x
         ):
-            position_x = random.randint(20, screen.screen_width - 20)
+            position_x = random.randint(40, screen.screen_width - 20)
         mushrooms_x.append(position_x)
-        position_y = random.randint(20, screen.screen_height - 20)
+        position_y = random.randint(40, screen.screen_height - 20)
         while (
             position_y in mushrooms_y
             or position_y + 20 in mushrooms_y
             or position_y - 20 in mushrooms_y
         ):
-            position_y = random.randint(20, screen.screen_width - 20)
+            position_y = random.randint(40, screen.screen_width - 20)
         mushrooms_y.append(position_y)
         mushroom = Mushroom(screen, position_x, position_y)
         mushrooms.add(mushroom)
@@ -95,17 +95,20 @@ def handle_life_loss(current_time, fleas, spiders, level, centipedes, bullets):
         bullet.kill()
     
     # Aquí puedes pausar brevemente para dar tiempo a la reanimación de hongos
-    pygame.time.wait(2000)  # Pausa de 1 segundo
+    pygame.time.wait(3000)  # Pausa de 3 segundos
     pygame.display.flip() 
     
     # Crear nuevos centípedos para el reinicio del nivel
     centipedes = create_centipedes(level)
-    last_spider_spawn = current_time
-    last_scorpion_spawn = current_time
+    
+    # Reiniciar tiempos de spawn para que no generen enemigos inmediatamente
+    last_flea_spawn = current_time + 3000  # Reiniciar spawn con 3 segundos de espera
+    last_spider_spawn = current_time + 3000
+    last_scorpion_spawn = current_time + 3000
 
     cannot_pass_level = True
     
-    return last_spider_spawn, last_scorpion_spawn, animate_mushrooms, cannot_pass_level, centipedes
+    return last_flea_spawn, last_spider_spawn, last_scorpion_spawn, animate_mushrooms, cannot_pass_level, centipedes
 
 def event_handler(event: pygame.event.Event, player, bullets):
     if event.type == pygame.QUIT:
@@ -170,6 +173,8 @@ def game_loop():
     player = Player(screen)
     animate_mushrooms = False
     cannot_pass_level = False
+    
+    enemies_wait_time = 0
 
     # Grupo para hongos animados
     animated_mushrooms = pygame.sprite.Group()
@@ -234,7 +239,7 @@ def game_loop():
         if pygame.sprite.spritecollideany(player, fleas):
             player.lives -= 1  # Reducir la vida del jugador
             check_loss(player, fleas)  # Verificar si el jugador ha perdido todas las vidas
-            last_spider_spawn, last_scorpion_spawn, animate_mushrooms, cannot_pass_level, centipedes = handle_life_loss(current_time, fleas, spiders, level, centipedes, bullets)
+            last_flea_spawn, last_spider_spawn, last_scorpion_spawn, animate_mushrooms, cannot_pass_level, centipedes = handle_life_loss(current_time, fleas, spiders, level, centipedes, bullets)
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
 
@@ -261,7 +266,7 @@ def game_loop():
             player.lives -= 1
             check_loss(player, fleas)
             animate_mushrooms = True
-            last_spider_spawn, last_scorpion_spawn, animate_mushrooms, cannot_pass_level, centipedes = handle_life_loss(current_time, fleas, spiders, level, centipedes, bullets)
+            last_flea_spawn, last_spider_spawn, last_scorpion_spawn, animate_mushrooms, cannot_pass_level, centipedes = handle_life_loss(current_time, fleas, spiders, level, centipedes, bullets)
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
 
@@ -276,7 +281,7 @@ def game_loop():
                 hit_centipedes[0].rect.y + 20,
             )
             score += 10 * len(hit_centipedes)
-
+            mushrooms.add(new_mushroom)
 
             # Cambiar la cabeza del centipede si corresponde
             if hit_centipedes[0].num - 1 in centipede_numbers:
@@ -290,7 +295,7 @@ def game_loop():
         if pygame.sprite.spritecollideany(player, spiders):
             player.lives -= 1
             check_loss(player, fleas)
-            last_spider_spawn, last_scorpion_spawn, animate_mushrooms, cannot_pass_level, centipedes = handle_life_loss(current_time, fleas, spiders, level, centipedes, bullets)
+            last_flea_spawn, last_spider_spawn, last_scorpion_spawn, animate_mushrooms, cannot_pass_level, centipedes = handle_life_loss(current_time, fleas, spiders, level, centipedes, bullets)
             player.rect.centerx = screen.screen_width // 2
             player.rect.bottom = screen.screen_height - 10
 
@@ -299,9 +304,10 @@ def game_loop():
                 if centipede.num - 1 not in centipede_numbers:
                     centipede.increase_speed()
 
-            collided_mushrooms = pygame.sprite.spritecollide(centipede, mushrooms, False)
-            if collided_mushrooms:
-                centipede.collide_with_mushroom()
+            if pygame.sprite.spritecollide(centipede, mushrooms, False):
+                centipede.change_movement()
+                if pygame.sprite.spritecollide(centipede, mushrooms, False):
+                    centipede.change_direction()
 
         if not centipedes and check_win(level) is False and not cannot_pass_level:
             centipedes = create_centipedes(level)
